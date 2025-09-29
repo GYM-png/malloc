@@ -1,0 +1,3 @@
+D:/WorkSpace/Clion_Projects/Malloc/CMakeFiles/Malloc.dir
+D:/WorkSpace/Clion_Projects/Malloc/CMakeFiles/edit_cache.dir
+D:/WorkSpace/Clion_Projects/Malloc/CMakeFiles/rebuild_cache.dir
