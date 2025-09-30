@@ -21,22 +21,30 @@ typedef struct memy_node
 
 #if MEMORY_POLL_NUM == 1
 uint8_t membase0[MEM0_MAX_SIZE];                 // SRAM内存池 4字节对齐
-MemeyNode HedaNode[1], EndNode[1];              // 头尾节点
-uint32_t mem_size_table[1] = {MEM0_MAX_SIZE};   // 内存size表
-uint8_t *membase_table[1] = {membase0};          // 内存基地址表
+MemeyNode HedaNode[MEMORY_POLL_NUM], EndNode[MEMORY_POLL_NUM];// 头尾节点
+uint32_t mem_size_table[MEMORY_POLL_NUM] = {MEM0_MAX_SIZE};   // 内存size表
+uint8_t *membase_table[MEMORY_POLL_NUM] = {membase0};         // 内存基地址表
 #elif MEMORY_POLL_NUM == 2
 uint8_t membase0[MEM0_MAX_SIZE];                              // SRAM内存池 4字节对齐
-uint8_t membase1[MEM1_MAX_SIZE];                             // SRAM内存池 4字节对齐
-MemeyNode HedaNode[2], EndNode[2];                           // 头尾节点
-uint32_t mem_size_table[2] = {MEM0_MAX_SIZE, MEM1_MAX_SIZE}; // 内存size表
-uint8_t *membase_table[2] = {membase0, membase1};             // 内存基地址表
+uint8_t membase1[MEM1_MAX_SIZE];                              // SRAM内存池 4字节对齐
+MemeyNode HedaNode[MEMORY_POLL_NUM], EndNode[MEMORY_POLL_NUM];             // 头尾节点
+uint32_t mem_size_table[MEMORY_POLL_NUM] = {MEM0_MAX_SIZE, MEM1_MAX_SIZE}; // 内存size表
+uint8_t *membase_table[MEMORY_POLL_NUM] = {membase0, membase1};            // 内存基地址表
 #elif MEMORY_POLL_NUM == 3
-uint8_t membase0[MEM0_MAX_SIZE];                                                         // SRAM内存池 4字节对齐
+uint8_t membase0[MEM0_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
 uint8_t membase1[MEM1_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
 uint8_t membase2[MEM2_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
-MemeyNode HedaNode[3], EndNode[3];                                                      // 头尾节点
-uint32_t mem_size_table[3] = {MEM0_MAX_SIZE, MEM1_MAX_SIZE, MEM2_MAX_SIZE}; // 内存size表
-uint8_t *membase_table[3] = {membase0, membase1, membase2};                  // 内存基地址表
+MemeyNode HedaNode[MEMORY_POLL_NUM], EndNode[MEMORY_POLL_NUM];                                        // 头尾节点
+uint32_t mem_size_table[MEMORY_POLL_NUM] = {MEM0_MAX_SIZE, MEM1_MAX_SIZE, MEM2_MAX_SIZE}; // 内存size表
+uint8_t *membase_table[MEMORY_POLL_NUM] = {membase0, membase1, membase2};                 // 内存基地址表
+#elif MEMORY_POLL_NUM == 4
+uint8_t membase0[MEM0_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
+uint8_t membase1[MEM1_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
+uint8_t membase2[MEM2_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
+uint8_t membase3[MEM3_MAX_SIZE];                                                        // SRAM内存池 4字节对齐
+MemeyNode HedaNode[MEMORY_POLL_NUM], EndNode[MEMORY_POLL_NUM];                          // 头尾节点
+uint32_t mem_size_table[MEMORY_POLL_NUM] = {MEM0_MAX_SIZE, MEM1_MAX_SIZE, MEM2_MAX_SIZE, MEM3_MAX_SIZE}; // 内存size表
+uint8_t *membase_table[MEMORY_POLL_NUM] = {membase0, membase1, membase2, membase2};     // 内存基地址表
 #endif
 
 /**
@@ -96,11 +104,11 @@ void mem_init() // 初始化内存链表
 /**
  * @brief 内存申请
  * @note  4字节对齐
- * @param mem_num 内存池编号
+ * @param mem_num 内存池编号 @ref MemPoolNum_e
  * @param size 申请内存大小(单位:字节)
  * @return 申请到的内存首地址
  */
-void *mymalloc(uint8_t mem_num, uint32_t size)
+void *mymalloc(MemPoolNum_e mem_num, uint32_t size)
 {
     if (mem_num >= MEMORY_POLL_NUM)
     {
@@ -138,11 +146,11 @@ void *mymalloc(uint8_t mem_num, uint32_t size)
 /**
  * @brief 内存申请
  * @note  4字节对齐 最大化利用碎片内存
- * @param mem_num 内存池编号
+ * @param mem_num 内存池编号 @ref MemPoolNum_e
  * @param size 申请内存大小(单位:字节)
  * @return 申请到的内存首地址
  */
-void *mymalloc(uint8_t mem_num, uint32_t size)
+void *mymalloc(MemPoolNum_e mem_num, uint32_t size)
 {
     if (mem_num >= MEMORY_POLL_NUM)
     {
@@ -203,12 +211,12 @@ void *mymalloc(uint8_t mem_num, uint32_t size)
 
 /**
  * @brief 重新申请内存
- * @param mem_num 内存池编号
+ * @param mem_num 内存池编号 @ref MemPoolNum_e
  * @param ptr 内存首地址
  * @param size 申请内存大小(单位:字节)
  * @return 申请到的内存首地址
  */
-void *myrealloc(uint8_t mem_num, void *ptr, uint32_t size)
+void *myrealloc(MemPoolNum_e mem_num, void *ptr, uint32_t size)
 {
     if (ptr == NULL)
         return mymalloc(mem_num, size);
@@ -267,9 +275,9 @@ void myfree(void *ptr)
 
 /**
  * @brief 打印内存使用情况
- * @param mem_num 内存池编号
+ * @param mem_num 内存池编号 @ref MemPoolNum_e
  */
-void mem_print(uint8_t mem_num)
+void mem_print(MemPoolNum_e mem_num)
 {
     uint32_t use_size = 0;
     PNode p = &HedaNode[mem_num];

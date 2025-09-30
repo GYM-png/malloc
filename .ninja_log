@@ -1,8 +1,0 @@
-# ninja log v5
-4	45	7808600956119401	CMakeFiles/Malloc.dir/Malloc.c.obj	edc0f1e299fef88a
-1	42	7808601815522688	CMakeFiles/Malloc.dir/main.c.obj	43593b42583cc1d2
-43	88	7808601815957974	Malloc.exe	60580ae0ab31069b
-1	44	7808611517897472	CMakeFiles/Malloc.dir/main.c.obj	43593b42583cc1d2
-1	42	7808611813611172	CMakeFiles/Malloc.dir/main.c.obj	43593b42583cc1d2
-3	46	7808611813648716	CMakeFiles/Malloc.dir/Malloc.c.obj	edc0f1e299fef88a
-46	92	7808611814086439	Malloc.exe	63b504caab778f60
