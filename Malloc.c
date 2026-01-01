@@ -1,7 +1,13 @@
-//
-// Created by GYM on 2025/9/28.
-//
-
+/**
+ * @file Malloc.c
+ * @author GYM (480609450@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2025-09-28
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
 #include "Malloc.h"
 #include "stdio.h"
 
@@ -25,6 +31,7 @@ typedef struct memy_node
     /* 当前是 Keil Arm Compiler 6 (AC6) */
     #define COMPILER_KEIL_AC6
 #else
+    /* 未知编译器 */
     #define COMPILER_UNKNOW
 #endif
 
@@ -51,22 +58,39 @@ typedef struct memy_node
 #undef MEMORY_POOL_INOF
 #endif
 
+// 内存池枚举
+static const MemPool_e memory_enum_table[] = {
+    #define MEMORY_POOL_INOF(serial, size, name, address) name,
+    MEMORY_POOL_TABLE
+    #undef MEMORY_POOL_INOF
+};
+
+#define MEMORY_POOL_MAX (sizeof(memory_enum_table) / sizeof(memory_enum_table[0]))
+
 // 头 尾节点
-MemoryNode HedaNode[MEMORY_POOL_MAX], EndNode[MEMORY_POOL_MAX]; 
+static MemoryNode HedaNode[MEMORY_POOL_MAX], EndNode[MEMORY_POOL_MAX]; 
 
 // 内存大小表
-uint32_t memory_size_table[MEMORY_POOL_MAX] = {
+static uint32_t memory_size_table[MEMORY_POOL_MAX] = {
 #define MEMORY_POOL_INOF(serial, size, name, address) size,
            MEMORY_POOL_TABLE
 #undef MEMORY_POOL_INOF
 }; 
 
 // 内存基地址表
-uint8_t *memory_base_table[MEMORY_POOL_MAX] = {
+static uint8_t *memory_base_table[MEMORY_POOL_MAX] = {
 #define MEMORY_POOL_INOF(serial, size, name, address) mem_##name,
            MEMORY_POOL_TABLE
 #undef MEMORY_POOL_INOF
 }; 
+
+// 内存池名字
+static const char *memory_name_table[] = {
+    #define MEMORY_POOL_INOF(serial, size, name, address) #name,
+           MEMORY_POOL_TABLE
+#undef MEMORY_POOL_INOF
+};
+
 
 /**
  * @brief 格式化内存
@@ -74,7 +98,7 @@ uint8_t *memory_base_table[MEMORY_POOL_MAX] = {
  * @param value 格式化值
  * @param size 长度
  */
-void mymemset(void *dest, uint8_t value, uint32_t size)
+void lw_memset(void *dest, uint8_t value, uint32_t size)
 {
     uint8_t *addr = dest;
     while (size--)
@@ -89,7 +113,7 @@ void mymemset(void *dest, uint8_t value, uint32_t size)
  * @param src 源地址
  * @param size 长度
  */
-void mymemcpy(void *dest, void *src, uint32_t size)
+void lw_memcpy(void *dest, void *src, uint32_t size)
 {
     uint8_t *addr = dest;
     uint8_t *addr1 = src;
@@ -102,7 +126,7 @@ void mymemcpy(void *dest, void *src, uint32_t size)
 /**
  * @brief 初始化内存
  */
-void mem_init() // 初始化内存链表
+void lw_malloc_init() // 初始化内存链表
 {
     for (int i = 0; i < MEMORY_POOL_MAX; ++i)
     {
@@ -116,7 +140,7 @@ void mem_init() // 初始化内存链表
         EndNode[i].prior = &HedaNode[i];
         EndNode[i].next = NULL;
 
-        mymemset(memory_base_table[i], 0, memory_size_table[i]);
+        lw_memset(memory_base_table[i], 0, memory_size_table[i]);
     }
 }
 
@@ -129,7 +153,7 @@ void mem_init() // 初始化内存链表
  * @param size 申请内存大小(单位:字节)
  * @return 申请到的内存首地址
  */
-void *mymalloc(MemPool_e mem_num, uint32_t size)
+void *lw_malloc(MemPool_e mem_num, uint32_t size)
 {
     if (mem_num >= MEMORY_POOL_MAX)
     {
@@ -155,7 +179,7 @@ void *mymalloc(MemPool_e mem_num, uint32_t size)
             pnew->size = relsize;                  // 新节点的内存大小
             pnew->offset = p->offset + p->size;    // 新节点偏移量
             p->next = pnew;                        // 本节点Pnext=新节点的地址
-            mymemset(pnew + 1, 0, size);           // 初始化内存
+            lw_memset(pnew + 1, 0, size);           // 初始化内存
             return (void *)(((PNode)menaddr) + 1); // 返回去除节点信息的地址
         }
         else
@@ -171,7 +195,7 @@ void *mymalloc(MemPool_e mem_num, uint32_t size)
  * @param size 申请内存大小(单位:字节)
  * @return 申请到的内存首地址
  */
-void *mymalloc(MemPool_e mem_num, uint32_t size)
+void *lw_malloc(MemPool_e mem_num, uint32_t size)
 {
     if (mem_num >= MEMORY_POOL_MAX)
     {
@@ -225,10 +249,29 @@ void *mymalloc(MemPool_e mem_num, uint32_t size)
     pnew->size = relsize;                  // 新节点的内存大小
     pnew->offset = p->offset + p->size;    // 新节点偏移量
     p->next = pnew;                        // 本节点Pnext=新节点的地址
-    mymemset(pnew + 1, 0, size);           // 初始化内存
+    lw_memset(pnew + 1, 0, size);           // 初始化内存
     return (void *)(((PNode)menaddr) + 1); // 返回去除节点信息的地址
 }
 #endif
+
+/**
+ * @brief 自动选择内存池分配内存
+ * @param size 申请内存大小(单位:字节)
+ * @return 申请到的内存首地址
+ */
+void *lw_malloc_auto(uint32_t size)
+{
+    uint8_t *p = NULL;
+    for (uint16_t i = 0; i < MEMORY_POOL_MAX; i++)
+    {
+        p = (uint8_t *)lw_malloc(memory_enum_table[i], size);
+        if (p != NULL)
+        {
+            break;
+        }
+    }
+    return (void *)p;
+}
 
 /**
  * @brief 重新申请内存
@@ -237,13 +280,13 @@ void *mymalloc(MemPool_e mem_num, uint32_t size)
  * @param size 申请内存大小(单位:字节)
  * @return 申请到的内存首地址
  */
-void *myrealloc(MemPool_e mem_num, void *ptr, uint32_t size)
+void *lw_realloc(MemPool_e mem_num, void *ptr, uint32_t size)
 {
     if (ptr == NULL)
-        return mymalloc(mem_num, size);
+        return lw_malloc(mem_num, size);
     if (size == 0)
     {
-        myfree(ptr);
+        lw_free(ptr);
         return NULL;
     }
     PNode p = ((PNode)ptr) - 1;
@@ -263,14 +306,14 @@ void *myrealloc(MemPool_e mem_num, void *ptr, uint32_t size)
         return ptr;
     }
 
-    uint8_t *menaddr = (uint8_t *)mymalloc(mem_num, size);  // 原地址下空间不足， 申请新的内存
+    uint8_t *menaddr = (uint8_t *)lw_malloc(mem_num, size);  // 原地址下空间不足， 申请新的内存
     if (menaddr == NULL)
     {
         printf("malloc error\n");
         return NULL;
     }
-    mymemcpy(menaddr, ptr, p->size);    // 内存拷贝
-    myfree(ptr);
+    lw_memcpy(menaddr, ptr, p->size);    // 内存拷贝
+    lw_free(ptr);
     return (void *)menaddr;
 }
 
@@ -279,7 +322,7 @@ void *myrealloc(MemPool_e mem_num, void *ptr, uint32_t size)
  * @brief 释放内存
  * @param ptr 内存首地址
  */
-void myfree(void *ptr)
+void lw_free(void *ptr)
 {
     PNode p = NULL;
     if (ptr == NULL)
@@ -295,17 +338,45 @@ void myfree(void *ptr)
 }
 
 /**
- * @brief 打印内存使用情况
+ * @brief 获取内存池使用率
  * @param mem_num 内存池编号 @ref MemPool_e
  */
-void mem_print(MemPool_e mem_num)
+float lw_get_memory_rate(MemPool_e mem_num)
 {
     uint32_t use_size = 0;
+    float use_rate = 0.0f;
     PNode p = &HedaNode[mem_num];
     while (p->next)
     {
-        use_size += p->size + sizeof(MemoryNode);
+        use_size = (p->size == 0) ? use_size : (use_size + p->size + sizeof(MemoryNode));
         p = p->next;
     }
-    printf("pool_num:%d Used %dKB/%dKB:%.2f%%\n", mem_num, use_size / 1024, memory_size_table[mem_num] / 1024, (float)use_size * 100.0f / (float)memory_size_table[mem_num]);
+    use_rate = (use_size == 0) ? 0.0f: ((float)use_size * 100.0f / (float)memory_size_table[mem_num]);
+    return use_rate;
+}
+
+/**
+ * @brief 获取内存池详细信息
+ * @note 返回格式化后的字符串
+ * @param[out] buffer 缓冲区
+ */
+void lw_memory_list(uint8_t *buffer, uint16_t buffer_size)
+{
+    uint32_t use_size = 0;
+    float use_rate = 0.0f;
+    PNode p = NULL;
+    uint16_t output_size = 0;
+    output_size += snprintf(buffer, buffer_size, "poll          total(KB)  used(KB)  rate(%%)\r\n*****************************************\r\n");
+    for (uint16_t i = 0; i < MEMORY_POOL_MAX; i++)
+    {
+        p = &HedaNode[i];
+        use_size = 0;
+        while (p->next)
+        {
+            use_size = (p->size == 0) ? use_size : (use_size + p->size + sizeof(MemoryNode));
+            p = p->next;
+        }
+        use_rate = (use_size == 0) ? 0.0f: ((float)use_size * 100.0f / (float)memory_size_table[i]);
+        output_size += snprintf(buffer + output_size, buffer_size - output_size, "%-15s %-4d      %-4d      %.2f\n", memory_name_table[i], (memory_size_table[i] / 1024), (use_size / 1024), use_rate);
+    }
 }

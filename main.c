@@ -26,6 +26,9 @@ void mem_ceck(const uint8_t *addr, const uint8_t value, uint32_t size)
     printf("check success\n");
 }
 
+
+void malloc_test1()
+{
 #define DATA1_VALUE 0xAA
 #define DATA2_VALUE 0xBB
 #define DATA3_VALUE 0xCC
@@ -39,34 +42,32 @@ void mem_ceck(const uint8_t *addr, const uint8_t value, uint32_t size)
 #define DATA4_SIZE (1024 * 2)
 #define DATA5_SIZE (1024 * 1)
 #define DATA6_SIZE (1024 * 2)
-int main(void) {
-    mem_init();
     uint8_t *data1 = NULL, *data2 = NULL, *data3 = NULL, *data4 = NULL, *data5 = NULL, *data6 = NULL;
-    data1 = (uint8_t *)mymalloc(MEMORY_CCM, DATA1_SIZE);
-    data2 = (uint8_t *)mymalloc(MEMORY_CCM, DATA2_SIZE);
-    data3 = (uint8_t *)mymalloc(MEMORY_CCM, DATA3_SIZE);
-    data4 = (uint8_t *)mymalloc(MEMORY_CCM, DATA4_SIZE);
-    data5 = (uint8_t *)mymalloc(MEMORY_CCM, DATA5_SIZE);
+    data1 = (uint8_t *)lw_malloc(MEMORY_CCM, DATA1_SIZE);
+    data2 = (uint8_t *)lw_malloc(MEMORY_CCM, DATA2_SIZE);
+    data3 = (uint8_t *)lw_malloc(MEMORY_CCM, DATA3_SIZE);
+    data4 = (uint8_t *)lw_malloc(MEMORY_CCM, DATA4_SIZE);
+    data5 = (uint8_t *)lw_malloc(MEMORY_CCM, DATA5_SIZE);
     if(data1 == NULL || data2 == NULL || data3 == NULL || data4 == NULL || data5 == NULL)
     {
         printf("malloc error\n");
         if (data1)
-            myfree(data1);
+            lw_free(data1);
         if (data2)
-            myfree(data2);
+            lw_free(data2);
         if (data3)
-            myfree(data3);
+            lw_free(data3);
         if (data4)
-            myfree(data4);
+            lw_free(data4);
         if (data5)
-            myfree(data5);
+            lw_free(data5);
         return -1;
     }
-    mymemset(data1, DATA1_VALUE, DATA1_SIZE);
-    mymemset(data2, DATA2_VALUE, DATA2_SIZE);
-    mymemset(data3, DATA3_VALUE, DATA3_SIZE);
-    mymemset(data4, DATA4_VALUE, DATA4_SIZE);
-    mymemset(data5, DATA5_VALUE, DATA5_SIZE);
+    lw_memset(data1, DATA1_VALUE, DATA1_SIZE);
+    lw_memset(data2, DATA2_VALUE, DATA2_SIZE);
+    lw_memset(data3, DATA3_VALUE, DATA3_SIZE);
+    lw_memset(data4, DATA4_VALUE, DATA4_SIZE);
+    lw_memset(data5, DATA5_VALUE, DATA5_SIZE);
 
     mem_ceck(data1, DATA1_VALUE, DATA1_SIZE);
     mem_ceck(data2, DATA2_VALUE, DATA2_SIZE);
@@ -76,13 +77,13 @@ int main(void) {
     // 此时的内存分配情况
     // data1 | data2 | data3 | data4 | data5 |
     //| 1K   | 3K    | 5K    | 2K    | 1K    |
-    myfree(data2); data2 = NULL;
-    myfree(data4); data4 = NULL;
+    lw_free(data2); data2 = NULL;
+    lw_free(data4); data4 = NULL;
     // 此时的内存分配情况
     // data1 |       | data3 |       | data5 |
     //| 1K   | 3K    | 5K    | 2K    | 1K    |
 
-    data6 = (uint8_t *)mymalloc(MEMORY_CCM, DATA6_SIZE);//DATA6_SIZE 为2K， 开启内存碎片优化后，会申请到原data4(2K)的位置，否则会申请到原data2(3K)的位置
+    data6 = (uint8_t *)lw_malloc(MEMORY_CCM, DATA6_SIZE);//DATA6_SIZE 为2K， 开启内存碎片优化后，会申请到原data4(2K)的位置，否则会申请到原data2(3K)的位置
     if (data6 == NULL)
     {
         printf("error 内存申请失败\n");
@@ -102,9 +103,9 @@ int main(void) {
     // data1 |       | data3 | data6 | data5 |
     //| 1K   | 3K    | 5K    | 2K    | 1K    |
     uint8_t *before_ptr5 = data5;
-    mymemset(data6, DATA6_VALUE, DATA6_SIZE);
+    lw_memset(data6, DATA6_VALUE, DATA6_SIZE);
     printf("brefore data 5 addr %p\n", data5);
-    data5 = (uint8_t *)myrealloc(MEMORY_CCM, data5, 1024 * 2);
+    data5 = (uint8_t *)lw_realloc(MEMORY_CCM, data5, 1024 * 2);
     printf("after   data 5 addr %p\n", data5);
     if (data5 == NULL)
     {
@@ -112,7 +113,7 @@ int main(void) {
     }
     else
     {
-        mymemset(data5, DATA5_VALUE, 1024 * 2);
+        lw_memset(data5, DATA5_VALUE, 1024 * 2);
     }
     if (before_ptr5 == data5)
     {
@@ -126,16 +127,16 @@ int main(void) {
     // data1 |       | data3 | data6 | data5 |
     //| 1K   | 3K    | 5K    | 2K    | 2K    |
     uint8_t *before_ptr1 = data1;
-    myfree(data2);
+    lw_free(data2);
     printf("brefore data 1 addr %p\n", before_ptr1);
-    data1 = (uint8_t *)myrealloc(MEMORY_CCM, data1, 1024 * 5); //这里申请必须大于1024 * 4 + 24 字节，才能使data1首地址改变
+    data1 = (uint8_t *)lw_realloc(MEMORY_CCM, data1, 1024 * 5); //这里申请必须大于1024 * 4 + 24 字节，才能使data1首地址改变
     if (data1 == NULL)
     {
         printf("内存申请失败\n");
     }
     else
     {
-        mymemset(data1, DATA1_VALUE, 1024 * 5);
+        lw_memset(data1, DATA1_VALUE, 1024 * 5);
     }
     printf("after   data 1 addr %p\n", data1);
     if (before_ptr1 < data1)
@@ -155,14 +156,22 @@ int main(void) {
     mem_ceck(data4, DATA4_VALUE, DATA4_SIZE);
     mem_ceck(data5, DATA5_VALUE, DATA5_SIZE);
 
-    mem_print(MEMORY_CCM);
-    myfree(data1);
-    myfree(data2);
-    myfree(data3);
-    myfree(data4);
-    myfree(data5);
-    myfree(data6);
-    mem_print(MEMORY_CCM);
+    lw_memory_list(data1, 1024);
+    printf("%s\n", data1);
+    // lw_free(data1);
+    lw_free(data2);
+    lw_free(data3);
+    lw_free(data4);
+    lw_free(data5);
+    lw_free(data6);
+    lw_memory_list(data1, 1024);
+    printf("%s\n", data1);
+    lw_free(data1);
+}
+
+int main(void) {
+    lw_malloc_init();
+    malloc_test1();
     return 0;
 
 }
