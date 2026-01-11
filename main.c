@@ -61,7 +61,7 @@ void malloc_test1()
             lw_free(data4);
         if (data5)
             lw_free(data5);
-        return -1;
+        return;
     }
     lw_memset(data1, DATA1_VALUE, DATA1_SIZE);
     lw_memset(data2, DATA2_VALUE, DATA2_SIZE);
@@ -87,7 +87,7 @@ void malloc_test1()
     if (data6 == NULL)
     {
         printf("error 内存申请失败\n");
-        return -1;
+        return;
     }
     #ifdef MEMORY_FRAGMENT_OPT
     if (data3 < data6 && data6 < data5 )

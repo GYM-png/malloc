@@ -68,7 +68,7 @@ static const MemPool_e memory_enum_table[] = {
 #define MEMORY_POOL_MAX (sizeof(memory_enum_table) / sizeof(memory_enum_table[0]))
 
 // 头 尾节点
-static MemoryNode HedaNode[MEMORY_POOL_MAX], EndNode[MEMORY_POOL_MAX]; 
+static MemoryNode HeadNode[MEMORY_POOL_MAX], EndNode[MEMORY_POOL_MAX]; 
 
 // 内存大小表
 static uint32_t memory_size_table[MEMORY_POOL_MAX] = {
@@ -130,14 +130,14 @@ void lw_malloc_init() // 初始化内存链表
 {
     for (int i = 0; i < MEMORY_POOL_MAX; ++i)
     {
-        HedaNode[i].offset = 0;
-        HedaNode[i].size = 0;
-        HedaNode[i].prior = NULL;
-        HedaNode[i].next = &EndNode[i];
+        HeadNode[i].offset = 0;
+        HeadNode[i].size = 0;
+        HeadNode[i].prior = NULL;
+        HeadNode[i].next = &EndNode[i];
 
         EndNode[i].offset = memory_size_table[i];
         EndNode[i].size = 0;
-        EndNode[i].prior = &HedaNode[i];
+        EndNode[i].prior = &HeadNode[i];
         EndNode[i].next = NULL;
 
         lw_memset(memory_base_table[i], 0, memory_size_table[i]);
@@ -167,7 +167,7 @@ void *lw_malloc(MemPool_e mem_num, uint32_t size)
     relsize = size + sizeof(MemoryNode); // 实际要申请的内存大小 包含节点空间
     if (relsize % 4)                    // 4字节对齐
         relsize += (4 - (relsize % 4)); // 不满4字节就补齐
-    p = &HedaNode[mem_num];                      // 导入头节点
+    p = &HeadNode[mem_num];                      // 导入头节点
     while (p->next)                     // 下一节点存在
     {
         if ((p->next->offset - (p->offset + p->size)) > relsize) // 本节点和下节点间剩余的内存>要申请的内存大小
@@ -211,7 +211,7 @@ void *lw_malloc(MemPool_e mem_num, uint32_t size)
     {
         relsize += (4 - (relsize % 4));
     }
-    p = &HedaNode[mem_num];             // 导入头节点
+    p = &HeadNode[mem_num];             // 导入头节点
     uint8_t node_deep = 0;              // 节点深度
     uint8_t valid_noed_num = 0;         // 有效节点数量
     uint32_t min_szie = 0xFFFFFFFF;     // 最小有效节点大小
@@ -237,7 +237,7 @@ void *lw_malloc(MemPool_e mem_num, uint32_t size)
         return NULL;
     }
 
-    p = &HedaNode[mem_num];             // 重新导入头节点
+    p = &HeadNode[mem_num];             // 重新导入头节点
     for (int i = 0; i < min_size_deep; ++i)
     {
         p = p->next;
@@ -345,7 +345,7 @@ float lw_get_memory_rate(MemPool_e mem_num)
 {
     uint32_t use_size = 0;
     float use_rate = 0.0f;
-    PNode p = &HedaNode[mem_num];
+    PNode p = &HeadNode[mem_num];
     while (p->next)
     {
         use_size = (p->size == 0) ? use_size : (use_size + p->size + sizeof(MemoryNode));
@@ -369,7 +369,7 @@ void lw_memory_list(uint8_t *buffer, uint16_t buffer_size)
     output_size += snprintf(buffer, buffer_size, "poll          total(KB)  used(KB)  rate(%%)\r\n*****************************************\r\n");
     for (uint16_t i = 0; i < MEMORY_POOL_MAX; i++)
     {
-        p = &HedaNode[i];
+        p = &HeadNode[i];
         use_size = 0;
         while (p->next)
         {
