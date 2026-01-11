@@ -18,7 +18,10 @@ typedef struct memy_node
     uint32_t size;   // 本节点带的内存大小
     PNode prior;     // 前驱指针域
     PNode next;      // 后继指针域
+    uint32_t mark;   // 标记，避免释放错误数据
 } MemoryNode;
+
+#define MEMORY_MARK (uint32_t)0x1F57F9D2
 
 /* 编译器识别 */
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__ICCARM__)
@@ -134,6 +137,7 @@ void lw_malloc_init() // 初始化内存链表
         HeadNode[i].size = 0;
         HeadNode[i].prior = NULL;
         HeadNode[i].next = &EndNode[i];
+        HeadNode[i].mark = MEMORY_MARK;
 
         EndNode[i].offset = memory_size_table[i];
         EndNode[i].size = 0;
@@ -178,6 +182,7 @@ void *lw_malloc(MemPool_e mem_num, uint32_t size)
             pnew->next = p->next;                  // 新节点的Pnext=本节点Pnext
             pnew->size = relsize;                  // 新节点的内存大小
             pnew->offset = p->offset + p->size;    // 新节点偏移量
+            pnew->mark = MEMORY_MARK;
             p->next = pnew;                        // 本节点Pnext=新节点的地址
             lw_memset(pnew + 1, 0, size);           // 初始化内存
             return (void *)(((PNode)menaddr) + 1); // 返回去除节点信息的地址
@@ -248,6 +253,7 @@ void *lw_malloc(MemPool_e mem_num, uint32_t size)
     pnew->next = p->next;                  // 新节点的Pnext=本节点Pnext
     pnew->size = relsize;                  // 新节点的内存大小
     pnew->offset = p->offset + p->size;    // 新节点偏移量
+    pnew->mark = MEMORY_MARK;
     p->next = pnew;                        // 本节点Pnext=新节点的地址
     lw_memset(pnew + 1, 0, size);           // 初始化内存
     return (void *)(((PNode)menaddr) + 1); // 返回去除节点信息的地址
@@ -328,7 +334,7 @@ void lw_free(void *ptr)
     if (ptr == NULL)
         return;
     p = ((PNode)ptr) - 1;      // 点位到内存地址前的节点信息
-    if (p->prior && p->next) // 防止二次释放产生错误
+    if (p->prior && p->next && p->mark == MEMORY_MARK) // 防止二次释放产生错误或释放到非内存池内存
     {
         p->prior->next = p->next;  // 本上节点的上一节点的Pnext=本节点的下一节点地址
         p->next->prior = p->prior; // 本上节点的下一节点的Prior=本节点的上一节点地址
