@@ -1,5 +1,5 @@
 /**
- * @file Malloc.c
+ * @file lw_malloc.c
  * @author GYM (480609450@qq.com)
  * @brief 
  * @version 0.1
@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2025
  * 
  */
-#include "Malloc.h"
+#include "lw_malloc.h"
 #include "stdio.h"
 
 typedef struct memy_node *PNode; // 定义节点指针

@@ -5,7 +5,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Malloc",
+            "program": "${workspaceFolder}/build/lw_malloc",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -10,7 +10,7 @@ cmake ..
 # 编译项目
 make
 
-./Malloc
+./lw_malloc
 
 # # 运行cppcheck并生成报告
 # cd .. && sh ./cppcheck.sh

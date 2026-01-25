@@ -1,5 +1,5 @@
 /**
- * @file Malloc.h
+ * @file lw_malloc.h
  * @author GYM (480609450@qq.com)
  * @brief 
  * @version 0.1
@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2025
  * 
  */
-#ifndef MALLOC_MALLOC_H
-#define MALLOC_MALLOC_H
+#ifndef __LW_MALLOC_H
+#define __LW_MALLOC_H
 
 #include <stdint.h>
 
@@ -60,4 +60,4 @@ void lw_memcpy(void *dest, void *src, uint32_t size);
 float lw_get_memory_rate(MemPool_e mem_num);
 void lw_memory_list(uint8_t *buffer, uint16_t buffer_size);
 
-#endif //MALLOC_MALLOC_H
+#endif //__LW_MALLOC_H
