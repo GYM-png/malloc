@@ -383,6 +383,6 @@ void lw_memory_list(uint8_t *buffer, uint16_t buffer_size)
             p = p->next;
         }
         use_rate = (use_size == 0) ? 0.0f: ((float)use_size * 100.0f / (float)memory_size_table[i]);
-        output_size += snprintf(buffer + output_size, buffer_size - output_size, "%-15s %-4d      %-4d      %.2f\n", memory_name_table[i], (memory_size_table[i] / 1024), (use_size / 1024), use_rate);
+        output_size += snprintf(buffer + output_size, buffer_size - output_size, "%-15s %-4d      %-4d      %.2f\r\n", memory_name_table[i], (memory_size_table[i] / 1024), (use_size / 1024), use_rate);
     }
 }
